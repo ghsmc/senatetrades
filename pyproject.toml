@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "congressmoney"
 version = "0.1.0"
-description = ""
+description = "An open-source platform to promot financial transparency by making the stock trades and personal finances broadly accessible."
 authors = ["George McCain <georgemccain88@gmail.com>"]
 
 [tool.poetry.dependencies]
