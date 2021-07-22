@@ -1,11 +1,15 @@
 [tool.poetry]
 name = "congressmoney"
 version = "0.1.0"
-description = "An open-source platform to promot financial transparency by making the stock trades and personal finances broadly accessible."
+description = "An open-source platform to promote financial transparency by making the stock trades and personal finances broadly accessible."
 authors = ["George McCain <georgemccain88@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
+Flask = "^2.0.1"
+requests = "^2.26.0"
+python-dotenv = "^0.18.0"
+black = "^21.7b0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
