@@ -6,6 +6,7 @@ import re
 from dotenv import load_dotenv
 import os
 from diskcache import Cache
+from tqdm import tqdm
 
 load_dotenv()
 
@@ -38,7 +39,7 @@ stock_data_cache = Cache(".cache")
 
 @stock_data_cache.memoize(expire=60*60*24)
 def load_alphavantage_data(ticker):
-    print(f"Stock data for {ticker} not loaded yet... getting now...")
+    tqdm.write(f"Stock data for {ticker} not loaded yet... getting now...")
     r = requests.get(
         "https://www.alphavantage.co/query",
         params={
@@ -48,7 +49,7 @@ def load_alphavantage_data(ticker):
             "outputsize": "full",
         },
     )
-    print(f"    ...done and cached!")
+    tqdm.write(f"    ...done and cached!")
     return r.json()
 
 
@@ -56,13 +57,17 @@ def stock_price(ticker, date):
     stock_data = load_alphavantage_data(ticker)
 
     if "Time Series (Daily)" not in stock_data:
-        print(f"{ticker} has no known timeseries")
+        tqdm.write(f"{ticker} is invalid, {stock_data}")
         return None
+    
+    # loop thru, try 0 days, try 1 days, try 2, etc. 
+    # for days in range(4):
+
     
     date_str = date.strftime("%Y-%m-%d")
     
     if date_str not in stock_data["Time Series (Daily)"]:
-        print(f"{ticker} has no known timeseries")
+        tqdm.write(f"{ticker} has no known timeseries on {date}")
         return None
     
     return float(stock_data["Time Series (Daily)"][date_str][
@@ -75,8 +80,15 @@ def parse_ticker(ticker):
 
 
 def preprocess_data():
-    for senator in senator_data:
+    for senator in tqdm(senator_data):
         for transaction in senator["transactions"]:
+            if "amount" not in transaction:
+                transaction["ignored"] = "ignored because no amount was specified in the transaction"
+                continue
+            elif "transaction_date" not in transaction:
+                transaction["ignored"] = "ignored because the transaction was missing a transaction date"
+                continue
+          
             if "type" in transaction and transaction["type"] == "Exchange":
                 tickers = parse_ticker(transaction["ticker"]).strip().split()
                 purchased_ticker = tickers[0]
@@ -95,8 +107,9 @@ def preprocess_data():
                 continue
 
             if "ticker" not in transaction or transaction["ticker"] == "--":
+                transaction["ignored"] = "ignored because there was no ticker"
                 continue
-
+        
             # Clean the ticker (strip HTML)
             transaction["ticker"] = parse_ticker(transaction["ticker"])
             amount = estimate_transaction_amount(transaction["amount"])
@@ -105,6 +118,7 @@ def preprocess_data():
                 transaction["ticker"], parse_date(transaction["transaction_date"])
             )
             if price is None:
+                transaction["ignored"] = "ignored because AlphaVantage could not retrieve a stock price at this point in time"
                 continue
             shares = amount / price
             transaction["shares"] = shares
@@ -112,42 +126,43 @@ def preprocess_data():
 
 def portfolio_breakdown(transactions, date):
     total = 0
+    cash = 0
     unaccounted = []
     positions = {}
+    
+    transactions = filter(lambda k: "ignored" not in k, transactions)
 
     for transaction in sorted(
         transactions, key=lambda k: parse_date(k["transaction_date"])
     ):
         transaction_date = parse_date(transaction["transaction_date"])
 
+        
         if transaction_date > date:
             break
-        print(transaction)
         ticker = transaction["ticker"]
-        if ticker == "--":
-            continue
 
         if transaction["type"] == "Purchase":
+            total +=estimate_transaction_amount(transaction["amount"])
             if ticker in positions:
                 positions[ticker] += transaction["shares"]
             else:
                 positions[ticker] = transaction["shares"]
-            total += estimate_transaction_amount(transaction["amount"])
         elif transaction["type"] == "Sale (Partial)":
             if ticker in positions:
                 positions[ticker] -= transaction["shares"]
-                total -= estimate_transaction_amount(transaction["amount"])
+                cash += estimate_transaction_amount(transaction["amount"])
             else:
                 # Unaccounted for sale!
                 unaccounted.append(transaction)
         elif transaction["type"] == "Exchange":
             if ticker in positions:
                 positions[ticker] += transaction["shares"]
-                total -= estimate_transaction_amount(transaction["amount"])
+                total += estimate_transaction_amount(transaction["amount"])
         elif transaction["type"] == "Sale (Full)":
             if ticker in positions:
                 positions[ticker] = 0
-                total -= estimate_transaction_amount(transaction["amount"])
+                cash += estimate_transaction_amount(transaction["amount"])
             else:
                 # Unaccounted for sale!
                 unaccounted.append(transaction)
@@ -167,40 +182,56 @@ def portfolio_breakdown(transactions, date):
         if price is None:
             continue
         value += amount * price
-        
     
     return {
         "positions": positions,
         "unaccounted": unaccounted,
         "total": total,
-        "value": value,
+        "value": value + cash,
+        "cash": cash
     }
 
 
 preprocess_data()
-# print(senator_data[0]["transactions"])
-
-portfolio = portfolio_breakdown(senator_data[0]["transactions"], parse_date("5/7/19"))
-print(portfolio["value"])
-print(portfolio["total"])
-print(portfolio["positions"])
 
 start_date = parse_date("Jan 1 2020")
 end_date = parse_date("Dec 31, 2020")
 delta = timedelta(days=1)
-value = []
+returns = []
 
 while start_date <= end_date:
-    print(start_date)
-    portfolio = portfolio_breakdown(senator_data[0]["transactions"], start_date)
-    value.append(portfolio["value"] / portfolio["total"])
+    tqdm.write(str(start_date))
+    portfolio = portfolio_breakdown(senator_data[2]["transactions"], start_date)
+    if portfolio["total"] == 0:
+        returns.append(portfolio["value"] / 1)
+    else:
+        returns.append(portfolio["value"] / portfolio["total"])
     start_date += delta
 
-print(value)
 
-# figure out 0.0 issue
-# plot against spy, compare to senatestockwatch
-# start on website
+# frequency = {}
+
+# # iterating over the list
+# for item in returns:
+#    # checking the element in dictionary
+#    if item in frequency:
+#       # incrementing the counr
+#       frequency[item] += 1
+#    else:
+#       # initializing the count
+#       frequency[item] = 1
+
+# # printing the frequency
+# for item in returns:
+#     if item in frequency and frequency[item] > 10:
+#         returns.remove(item)
+
+
+
+tqdm.write(str(returns))
+
+
+
 
 
 
