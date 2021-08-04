@@ -8,7 +8,35 @@ import os
 from diskcache import Cache
 from tqdm import tqdm
 
+
+
 load_dotenv()
+
+def loadopensecrets(id):
+    opensecrets_data = requests.get(
+        "https://www.opensecrets.org/api/?method=candSummary",
+        params={
+            "cid": id,
+            "cycle": "2020",
+            "apikey": "8ae1ae084cefa4e3093c52d0fdeb507b",
+            "output": "json"
+        },
+    ).json()
+
+    attributes = opensecrets_data["response"]["summary"],
+
+    senator_open_secrets = {
+        "next_election": attributes["next_election"],
+        "total_raised": attributes["total"],
+        "total_spent": attributes["spent"],
+        "cash_on_hand": attributes["cash_on_hand"]
+    }
+
+    return senator_open_secrets
+    
+
+    
+
 
 senator_data = requests.get(
     "https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/all_transactions_for_senators.json"
@@ -124,12 +152,16 @@ def preprocess_data():
             transaction["shares"] = shares
 
 
-def portfolio_breakdown(transactions, date):
+def portfolio_breakdown(senatordata, date):
     total = 0
     cash = 0
+    sales = 0
+    purchases = 0
     unaccounted = []
     positions = {}
     
+    transactions = senatordata["transactions"]
+
     transactions = filter(lambda k: "ignored" not in k, transactions)
 
     for transaction in sorted(
@@ -144,12 +176,14 @@ def portfolio_breakdown(transactions, date):
 
         if transaction["type"] == "Purchase":
             total +=estimate_transaction_amount(transaction["amount"])
+            purchases += 1
             if ticker in positions:
                 positions[ticker] += transaction["shares"]
             else:
                 positions[ticker] = transaction["shares"]
         elif transaction["type"] == "Sale (Partial)":
             if ticker in positions:
+                sales += 1
                 positions[ticker] -= transaction["shares"]
                 cash += estimate_transaction_amount(transaction["amount"])
             else:
@@ -160,6 +194,7 @@ def portfolio_breakdown(transactions, date):
                 positions[ticker] += transaction["shares"]
                 total += estimate_transaction_amount(transaction["amount"])
         elif transaction["type"] == "Sale (Full)":
+            sales += 1
             if ticker in positions:
                 positions[ticker] = 0
                 cash += estimate_transaction_amount(transaction["amount"])
@@ -188,7 +223,10 @@ def portfolio_breakdown(transactions, date):
         "unaccounted": unaccounted,
         "total": total,
         "value": value + cash,
-        "cash": cash
+        "purchases": purchases,
+        "sales": sales,
+        "cash": cash,
+        "name": senatordata["first_name"] + " " + senatordata["last_name"]
     }
 
 
@@ -201,34 +239,30 @@ returns = []
 
 while start_date <= end_date:
     tqdm.write(str(start_date))
-    portfolio = portfolio_breakdown(senator_data[2]["transactions"], start_date)
+    portfolio = portfolio_breakdown(senator_data[2], start_date)
     if portfolio["total"] == 0:
         returns.append(portfolio["value"] / 1)
     else:
         returns.append(portfolio["value"] / portfolio["total"])
     start_date += delta
 
+opensecretsinformation = loadopensecrets("N00027658")
 
-# frequency = {}
+senator_dict = {
+    "name" : portfolio["name"],
+    "caption" : "",
+    "estimated_return" : returns[-1],
+    "portfolio_value" : portfolio["value"],
+    "sales" : portfolio["sales"],
+    "purchases" : portfolio["purchases"],
+    "returns" : returns,
+    "total_raised" : opensecretsinformation["total_raised"],
+    "total_spent" : opensecretsinformation["total_spent"],
+    "cash_on_hand" : opensecretsinformation["cash_on_hand"],
+    "next_election": opensecretsinformation["next_election"]
+}
 
-# # iterating over the list
-# for item in returns:
-#    # checking the element in dictionary
-#    if item in frequency:
-#       # incrementing the counr
-#       frequency[item] += 1
-#    else:
-#       # initializing the count
-#       frequency[item] = 1
-
-# # printing the frequency
-# for item in returns:
-#     if item in frequency and frequency[item] > 10:
-#         returns.remove(item)
-
-
-
-tqdm.write(str(returns))
+tqdm.write(str(senator_dict))
 
 
 
