@@ -1,26 +1,37 @@
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, request
 from dotenv import load_dotenv
 import csv
 import requests
 import os
+import json
 
 load_dotenv()
 
-app = Flask(__name__, static_url_path='/static')
+app = Flask(__name__, static_url_path="/static")
 
-@app.route('/')
+with open("processed_senators.json", "r") as infile:
+    data = json.load(infile)
+
+
+@app.route("/")
 def home():
-   return render_template('dailysummary.html')
+    return render_template("pages/dailysummary.html", data=data)
 
-@app.route('/dashboard')
+
+@app.route("/official")
 def dashboard():
-   return render_template('dashboard.html')
+    officials = request.args.getlist("official")
+    return render_template("pages/dashboard.html", officials=officials, data=data)
 
 
-@app.route('/base')
+@app.route("/base")
 def base():
-   return render_template('base.html')
+    return render_template("base.html")
 
 
-app.run()
+@app.route("/searchinput")
+def searchinput():
+    return render_template("searchinput.html")
 
+
+app.run(debug=True)
