@@ -86,28 +86,16 @@ def stock_price(ticker, date):
         tqdm.write(f"{ticker} is invalid, {stock_data}")
         return None
 
-    date_str = date.strftime("%Y-%m-%d")
+    for j in range(4):
+        time_delta = timedelta(days=j)
+        date_str = (date - time_delta).strftime("%Y-%m-%d")
+        if date_str in stock_data["Time Series (Daily)"]:
+            tqdm.write("Value found at t - " + str(j)) 
+            return float(
+                stock_data["Time Series (Daily)"][date_str]["5. adjusted close"]                      
+            )
+    return None
 
-    if date_str not in stock_data["Time Series (Daily)"]:
-        i = 0
-        while i < 5:
-            parse_date(date_str) - timedelta(days=i)
-            if str(date_str) in stock_data["Time Series (Daily)"]:
-                return float(
-                    stock_data["Time Series (Daily)"][date_str]["5. adjusted close"]
-                )
-            if str(date_str) not in stock_data["Time Series (Daily)"]:
-                for j in range(4):
-                    time_delta = timedelta(days=j) 
-                    if str(parse_date(date_str) - time_delta) in stock_data["Time Series (Daily)"]:
-                        return float(
-                            stock_data["Time Series (Daily)"][date_str]["5. adjusted close"]                        
-                        )
-                i += 1
-            i += 1
-        return None
-
-    return float(stock_data["Time Series (Daily)"][date_str]["5. adjusted close"])
 
 
 def parse_ticker(ticker):
@@ -252,13 +240,13 @@ total_values=0
 total_sales = 0
 total_purchases = 0
 average_daily_returns = []
+senator_names = []
 
 for senator in tqdm(senator_data, "Calculating returns"):
     start_date = parse_date("Jan 1 2020")
     end_date = datetime.now()
     delta = timedelta(days=1)
     returns = {}
-    senator_names = []
 
     while start_date <= end_date:
         portfolio = portfolio_breakdown(senator, start_date)
@@ -305,25 +293,37 @@ for senator in tqdm(senator_data, "Calculating returns"):
     }
 
     senator_names.append(senator_dict["name"])
-    total_returns += senator_dict["estimated_return"] 
+    total_returns += senator_dict["estimated_return"]
     total_values += senator_dict["portfolio_value"]
     total_sales += senator_dict["sales"]
     total_purchases += senator_dict["purchases"]
 
+    senator_dict = {
+        "name": portfolio["name"],
+        "estimated_return": "{:,}".format.round(list(returns.values())[-1], 2),
+        "portfolio_value": "{:,}".round(portfolio["value"]),
+        "sales": portfolio["sales"],
+        "purchases": portfolio["purchases"],
+        "returns": returns,
+        "positions": portfolio["positions"]
+    }
 
     tqdm.write(f"Processed {portfolio['name']}!")
     processed_data[portfolio["name"]] = senator_dict
-    processed_data["senator_names"] = senator_names
-    processed_data["daily_summary"] = daily_summary
 
 daily_summary = {
-    "estimated_return": total_returns/len(senator_names),
-    "portfolio_value": total_values/len(senator_names),
-    "sales": total_sales/len(senator_names),
-    "purchases": total_purchases/len(senator_names),
+    "estimated_return": "{:,}".format(total_returns),
+    "portfolio_value": "{:,}".format(total_values),
+    "sales": total_sales,
+    "purchases": total_purchases,
     "average_daily_returns": average_daily_returns,
     "positions": portfolio["positions"]
 }
+
+processed_data["senator_names"] = senator_names
+processed_data["daily_summary"] = daily_summary
+
+
 tqdm.write("Writing output...!")
 with open("processed_senators.json", "w") as outfile:
     json.dump(processed_data, outfile, indent=2, sort_keys=True)

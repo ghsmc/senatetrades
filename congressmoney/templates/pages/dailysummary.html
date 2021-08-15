@@ -57,7 +57,9 @@
                                     Estimated Return, to date
                                 </p>
                                 <p class="text-lg font-semibold text-gray-700 dark:text-gray-200">
-                                    12.8%
+                                    {% with estimated_return = data["daily_summary"]["estimated_return"] %}
+                                    {{estimated_return}}
+                                    {% endwith %}  
                                 </p>
                             </div>
                         </div>
@@ -76,7 +78,9 @@
                                     Portfolio Value (Est.)
                                 </p>
                                 <p class="text-lg font-semibold text-gray-700 dark:text-gray-200">
-                                    $107,532
+                                    {% with portfolio_value = data["daily_summary"]["portfolio_value"] %}
+                                    {{portfolio_value}}
+                                    {% endwith %}  
                                 </p>
                             </div>
                         </div>
@@ -95,7 +99,9 @@
                                     Sales
                                 </p>
                                 <p class="text-lg font-semibold text-gray-700 dark:text-gray-200">
-                                    324
+                                    {% with sales = data["daily_summary"]["sales"] %}
+                                    {{sales}}
+                                    {% endwith %}  
                                 </p>
                             </div>
                         </div>
@@ -114,7 +120,9 @@
                                     Purchases
                                 </p>
                                 <p class="text-lg font-semibold text-gray-700 dark:text-gray-200">
-                                    123
+                                    {% with purchases = data["daily_summary"]["purchases"] %}
+                                    {{purchases}}
+                                    {% endwith %}  
                                 </p>
                             </div>
                         </div>
@@ -156,7 +164,7 @@
                                 <!-- Chart legend -->
                                 <div class="flex items-center">
                                     <span class="inline-block w-3 h-3 mr-1 bg-teal-500 rounded-full"></span>
-                                    <span>Kirsten Gillibrand</span>
+                                    <span>Senatorial Average Return</span>
                                 </div>
                                 <div class="flex items-center">
                                     <span class="inline-block w-3 h-3 mr-1 bg-purple-600 rounded-full"></span>

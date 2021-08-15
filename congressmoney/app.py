@@ -20,9 +20,8 @@ def home():
 
 @app.route("/official")
 def dashboard():
-    officials = request.args.getlist("official")
-    return render_template("pages/dashboard.html", officials=officials, data=data)
-
+    official = request.args.get("official")
+    return render_template("pages/dashboard.html", official=official, data=data)
 
 @app.route("/base")
 def base():

@@ -1,24 +1,33 @@
 /**
  * For usage, visit Chart.js docs https://www.chartjs.org/docs/latest/
  */
+
+// xaxis = []
+// yaxis = []
+
+// for (const [key, value] of Object.entries(data[{{official}}])) {
+//     xaxis.append(key);
+//     yaxis.append(value);
+// }
+
 const lineConfig = {
   type: 'line',
   data: {
     labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
     datasets: [
       {
-        label: 'Organic',
+        label: 'S&P 500',
         /**
          * These colors come from Tailwind CSS palette
          * https://tailwindcss.com/docs/customizing-colors/#default-color-palette
          */
         backgroundColor: '#0694a2',
         borderColor: '#0694a2',
-        data: [43, 48, 40, 54, 67, 73, 70],
+        data: [1.02, 1.1, 1.3, 1.4, 1.5, 1.32, 1.123],
         fill: false,
       },
       {
-        label: 'Paid',
+        label: 'Senatorial Average',
         fill: false,
         /**
          * These colors come from Tailwind CSS palette
@@ -26,7 +35,7 @@ const lineConfig = {
          */
         backgroundColor: '#7e3af2',
         borderColor: '#7e3af2',
-        data: [24, 50, 64, 74, 52, 51, 65],
+        data: [1.3, 1.4, 0.7, 1.2, 1.421, 1.2314, 1.1],
       },
     ],
   },
