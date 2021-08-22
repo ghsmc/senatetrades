@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html :class="{ 'theme-dark': dark }" x-data="data()" lang="en">
     <script>
-        const data = {{data|tojson}};
+        const senate_data = {{data|tojson}};
+        const official = "{{official}}";
     </script>
     {% include "head.html" %}
 <body>
@@ -53,7 +54,7 @@
                                 <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">
                                     Estimated Return, to date
                                 </p>
-                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200">
+                                <p id = "estimated_return" class="text-lg font-semibold text-gray-700 dark:text-gray-200">
                                   {% with estimated_return = data[official]["estimated_return"] %}
                                   {{estimated_return}}
                                   {% endwith %}
@@ -76,7 +77,7 @@
                                 </p>
                                 <p class="text-lg font-semibold text-gray-700 dark:text-gray-200">
                                   {% with portfolio_value = data[official]["portfolio_value"] %}
-                                  {{portfolio_value}}
+                                  ${{portfolio_value}}
                                   {% endwith %}                                </p>
                             </div>
                         </div>
@@ -133,22 +134,6 @@
                                 Portfolio Breakdown
                             </h4>
                             <canvas id="pie"></canvas>
-                            <div class="flex justify-center mt-4 space-x-3 text-sm text-gray-600 dark:text-gray-400">
-                                <!-- Chart legend -->
-                                <div class="flex items-center">
-                                    <span class="inline-block w-3 h-3 mr-1 bg-blue-600 rounded-full"></span>
-                                    <span>AAPL</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <span class="inline-block w-3 h-3 mr-1 bg-teal-500 rounded-full"></span>
-                                    <span>NFLX</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <span class="inline-block w-3 h-3 mr-1 bg-purple-600 rounded-full"></span>
-                                    <span>MSFT</span>
-                                </div>
-
-                            </div>
                         </div>
                         <!-- Lines chart -->
                         <div class="min-w-0 p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
@@ -171,11 +156,19 @@
                     </div>
                     <!-- New Table -->
                     {% include "table.html" %}
-
+                    
                 </div>              
             </main>
         </div>
     </div>
+
+
+<script>
+    var estimated_return = document.getElementById("estimated_return").innerHTML
+    document.getElementById("estimated_return").innerHTML = Math.round(estimated_return * 1000) / 1000
+</script>
+
 </body>
 
 </html>
+

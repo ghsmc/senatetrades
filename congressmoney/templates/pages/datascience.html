@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html :class="{ 'theme-dark': dark }" x-data="data()" lang="en">
+{% include "head.html" %}
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<body>
+    <div class="flex h-screen bg-gray-50 dark:bg-gray-900" :class="{ 'overflow-hidden': isSideMenuOpen }">
+        <!-- Desktop sidebar -->
+
+        {% include "navbar.html" %}
+
+        <!-- Mobile sidebar -->
+        <!-- Backdrop -->
+        {% include "mobilenav.html" %}
+
+        <div class="flex flex-col flex-1 w-full">
+            <header class="z-10 py-4 bg-white shadow-md dark:bg-gray-800">
+                <div
+                    class="container flex items-center justify-between h-full px-6 mx-auto text-green-600 dark:text-green-300">
+                    <!-- Mobile hamburger -->
+                    {% include "mobilehamburger.html" %}
+                    <!-- Search input -->
+
+                    {% include "themetoggler.html" %}
+                    <!-- Profile menu -->
+                </div>
+            </header>
+            <main class="h-full overflow-y-auto">
+                <div class="container px-6 mx-auto grid">
+                    <div class="max-w-3xl mx-auto">
+                        <h2 class="mt-6 mb-2 text-2xl font-semibold text-gray-700 text-center dark:text-gray-200 ml-8">
+                            Our Data Process
+                        </h2>
+                        <div class="px-4 py-3 mb-8 bg-white rounded-lg shadow-md dark:bg-gray-800">
+                            <p class="text-md text-gray-600 dark:text-gray-400 ml-8">
+                                All of the source-code for SenateTrades is available on <a
+                                    href="https://github.com/ghsmc/congressmoney">GitHub.</a> The data processing relies
+                                on data from <a href="https://senatestockwatcher.com">Senate Stock Watcher,</a> an
+                                organization that uses an automated system along with manual entry where necessary to
+                                provide accurate transactional data from the <a
+                                    href="https://efdsearch.senate.gov/search/home/"> United States Senate Financial
+                                    Disclosures (eFD).</a>
+                            </p>
+                        </div>
+                    </div>
+
+                    <h2 class="mt-6 text-2xl font-semibold text-gray-700 text-left dark:text-gray-200 ml-8">
+                        Imports
+                    </h2>
+                    <pre>
+                        <code class="language-python">
+                            <p>
+                                from dateutil.parser import parse as parse_date
+                                from decimal import Decimal
+                                from datetime import date, datetime, timedelta
+                                import requests
+                                import re
+                                from dotenv import load_dotenv
+                                import os
+                                from diskcache import Cache
+                                from tqdm import tqdm
+                                import heapq
+                                import operator
+                                import json
+                            </p>
+                        </code>
+                    </pre>
+                
+
+                    <h2 class="mt-6 text-2xl font-semibold text-gray-700 text-left dark:text-gray-200 ml-8">
+                        Parsing transaction ranges
+                    </h2>
+                    <div class="px-4 py-3 mt-4  bg-white rounded-lg shadow-md dark:bg-gray-800">
+                        <p class="text-md text-gray-600 dark:text-gray-400 ml-8">
+                            <b>parse_transaction_amount()</b> is a helper function that allows me to take the price ranges of senatorial transactions as strings and convert them to integers in a usable form. Because senators are not required to disclose the exact amount purchased or sold in each of their transactions (only specifying a range), I am assuming the middle of the range. In other words, if a senator purchases stock worth between ranges $1,001 and $15,000, I assume the transaction amount to be $8,000, between the two ranges. As a result of this assumption, the returns and statistics we display are estimates as opposed to exact numbers. 
+                        </p>
+                    </div>
+                    <pre>
+                        <code class="language-python mb-8">
+                            <p>
+                            def parse_transaction_amount(amount):
+                                ranges = {
+                                    "$1,001 - $15,000": (1001, 15000),
+                                    "$15,001 - $50,000": (15001, 50000),
+                                    "$50,001 - $100,000": (50001, 100000),
+                                    "$100,001 - $250,000": (100001, 250000),
+                                    "$250,001 - $500,000": (250001, 500000),
+                                    "$500,001 - $1,000,000": (500001, 1000000),
+                                    "$1,000,001 - $5,000,000": (1000001, 5000000),
+                                    "$5,000,001 - $25,000,000": (5000001, 25000000),
+                                    "$25,000,001 - $50,000,000": (25000001, 50000000),
+                                    "Over $50,000,000": (50000000, 50000000),
+                                }
+                                return ranges[amount]
+
+
+                            def estimate_transaction_amount(amount):
+                                return sum(parse_transaction_amount(amount)) / 2
+                            </p>
+                        </code>
+                    </pre>
+
+                    <h2 class="mt-6 text-2xl font-semibold text-gray-700 text-left dark:text-gray-200 ml-8">
+                        Loading stock data
+                    </h2>
+                    <div class="px-4 py-3 mt-4  bg-white rounded-lg shadow-md dark:bg-gray-800">
+                        <p class="text-md text-gray-600 dark:text-gray-400 ml-8">
+                            In order to estimate the returns of senators' stock purchases, we need stock market data. SenateTrades relies on data from <a href="https://alphavantage.co">Alpha Vantage</a>, an organization that provides enterprise-grade financial market data through a set of powerful and developer-friendly APIs backed by Harvard Business School, Google, and MorganStanley. To speed up the data processing, we cache the data after each request to the <b>load_alphavanntage_data(ticker)</b> function. You'll also notice that with each API request, the "functionn" is TIME_SERIES_DAILY_ADJUSTED. This is particularly important, because this metric accounts for stock splits— meaning that a stock split is not capable of vastly skewing any given senator's returns.
+                        </p>
+                    </div>
+                    <pre>
+                        <code class="language-python mb-8">
+                            <p>
+                                stock_data_cache = Cache(".cache")
+
+                                @stock_data_cache.memoize(expire=60 * 60 * 24)
+                                def load_alphavantage_data(ticker):
+                                    tqdm.write(f"Stock data for {ticker} not loaded yet... getting now...")
+                                    r = requests.get(
+                                        "https://www.alphavantage.co/query",
+                                        params={
+                                            "apikey": os.getenv("ALPHAVANTAGE_API_KEY"),
+                                            "function": "TIME_SERIES_DAILY_ADJUSTED",
+                                            "symbol": ticker,
+                                            "outputsize": "full",
+                                        },
+                                    )
+                                    tqdm.write(f"    ...done and cached!")
+                                    return r.json()
+                            </p>
+                        </code>
+                    </pre>
+
+                    <h2 class="mt-6 text-2xl font-semibold text-gray-700 text-left dark:text-gray-200 ml-8">
+                        Stock_price()
+                    </h2>
+                    <div class="px-4 py-3 mt-4  bg-white rounded-lg shadow-md dark:bg-gray-800">
+                        <p class="text-md text-gray-600 dark:text-gray-400 ml-8">
+                            In order to estimate the returns of senators' stock purchases, we need stock market data. SenateTrades relies on data from <a href="https://alphavantage.co">Alpha Vantage</a>, an organization that provides enterprise-grade financial market data through a set of powerful and developer-friendly APIs backed by Harvard Business School, Google, and MorganStanley. To speed up the data processing, we cache the data after each request to the <b>load_alphavanntage_data(ticker)</b> function. You'll also notice that with each API request, the "functionn" is TIME_SERIES_DAILY_ADJUSTED. This is particularly important, because this metric accounts for stock splits— meaning that a stock split is not capable of vastly skewing any given senator's returns.
+                        </p>
+                    </div>
+                    <pre>
+                        <code class="language-python mb-8">
+                            <p>
+                                stock_data_cache = Cache(".cache")
+
+                                @stock_data_cache.memoize(expire=60 * 60 * 24)
+                                def load_alphavantage_data(ticker):
+                                    tqdm.write(f"Stock data for {ticker} not loaded yet... getting now...")
+                                    r = requests.get(
+                                        "https://www.alphavantage.co/query",
+                                        params={
+                                            "apikey": os.getenv("ALPHAVANTAGE_API_KEY"),
+                                            "function": "TIME_SERIES_DAILY_ADJUSTED",
+                                            "symbol": ticker,
+                                            "outputsize": "full",
+                                        },
+                                    )
+                                    tqdm.write(f"    ...done and cached!")
+                                    return r.json()
+                            </p>
+                        </code>
+                    </pre>
+                </div>
+        </div>
+
+
+</body>
+
+</html>

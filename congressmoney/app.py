@@ -32,5 +32,9 @@ def base():
 def searchinput():
     return render_template("searchinput.html")
 
+@app.route("/datascience")
+def datascience():
+    return render_template("pages/datascience.html")
+
 
 app.run(debug=True)

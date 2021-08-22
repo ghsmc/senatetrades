@@ -8,7 +8,7 @@ yaxis = []
 spy_xaxis = []
 spy_yaxis = []
 
-for (let [key, value] of Object.entries(senate_data[official]["returns"])) {
+for (let [key, value] of Object.entries(senate_data["daily_summary"]["average_daily_returns"])) {
     key = key.substr(0, 10)
     xaxis.push(key);
     yaxis.push(value);
@@ -20,16 +20,13 @@ for (let [key, value] of Object.entries(senate_data["daily_summary"]["index_retu
   spy_yaxis.push(value);
 }
 
-console.log(spy_xaxis)
-console.log(xaxis)
-
 const lineConfig = {
   type: 'line',
   data: {
     labels: xaxis,
     datasets: [
       {
-        label: official,
+        label: 'Senatorial Average',
         /**
          * These colors come from Tailwind CSS palette
          * https://tailwindcss.com/docs/customizing-colors/#default-color-palette
