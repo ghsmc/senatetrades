@@ -23,18 +23,14 @@ def dashboard():
     official = request.args.get("official")
     return render_template("pages/dashboard.html", official=official, data=data)
 
-@app.route("/base")
-def base():
-    return render_template("base.html")
-
-
-@app.route("/searchinput")
-def searchinput():
-    return render_template("searchinput.html")
 
 @app.route("/datascience")
 def datascience():
     return render_template("pages/datascience.html")
+
+@app.route("/about")
+def about():
+    return render_template("pages/about.html")
 
 
 app.run(debug=True)

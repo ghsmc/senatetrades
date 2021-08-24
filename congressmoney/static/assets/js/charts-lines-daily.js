@@ -9,9 +9,9 @@ spy_xaxis = []
 spy_yaxis = []
 
 for (let [key, value] of Object.entries(senate_data["daily_summary"]["average_daily_returns"])) {
-    key = key.substr(0, 10)
-    xaxis.push(key);
-    yaxis.push(value);
+  key = key.substr(0, 10)
+  xaxis.push(key);
+  yaxis.push(value);
 }
 
 for (let [key, value] of Object.entries(senate_data["daily_summary"]["index_returns"])) {
@@ -20,7 +20,7 @@ for (let [key, value] of Object.entries(senate_data["daily_summary"]["index_retu
   spy_yaxis.push(value);
 }
 
-const lineConfig = {
+const lineConfig2 = {
   type: 'line',
   data: {
     labels: xaxis,
@@ -86,5 +86,5 @@ const lineConfig = {
 }
 
 // change this to the id of your chart element in HMTL
-const lineCtx = document.getElementById('line')
-window.myLine = new Chart(lineCtx, lineConfig)
+const lineCtx2 = document.getElementById('overall-line')
+window.myLine = new Chart(lineCtx2, lineConfig2)

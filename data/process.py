@@ -56,9 +56,10 @@ def estimate_transaction_amount(amount):
     return sum(parse_transaction_amount(amount)) / 2
 
 
-stock_data_cache = Cache(".cache")
+stock_data_cache = Cache(".cache", size_limit=int(10e9))
 
-@stock_data_cache.memoize(expire=60 * 60 * 24)
+
+@stock_data_cache.memoize(expire=60 * 60 * 24, name="load_alphavantage_data")
 def load_alphavantage_data(ticker):
     tqdm.write(f"Stock data for {ticker} not loaded yet... getting now...")
     r = requests.get(
@@ -74,6 +75,7 @@ def load_alphavantage_data(ticker):
     return r.json()
 
 
+@stock_data_cache.memoize(expire=60 * 60 * 24, name="stock_price")
 def stock_price(ticker, date):
     stock_data = load_alphavantage_data(ticker)
 
@@ -94,13 +96,16 @@ def stock_price(ticker, date):
 def parse_ticker(ticker):
     return re.sub("<[^<]+?>", "", ticker)
 
+
 daily_senator_data = requests.get(
     "https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/all_transactions.json"
 ).json()
 
 
-@stock_data_cache.memoize(expire=60 * 60 * 24)
+@stock_data_cache.memoize(expire=60 * 60 * 24, name="get_preprocessed_data")
 def get_preprocessed_data():
+    tqdm.write("Preprocessed data not cached -- pulling...")
+
     senator_data = requests.get(
         "https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/all_transactions_for_senators.json"
     ).json()
@@ -158,7 +163,8 @@ def get_preprocessed_data():
 
     return senator_data
 
-@stock_data_cache.memoize(expire=60 * 60 * 24)
+
+@stock_data_cache.memoize(expire=60 * 60 * 24, name="portfolio_breakdown")
 def portfolio_breakdown(senatordata, date):
     total = 0
     cash = 0
@@ -236,9 +242,9 @@ def portfolio_breakdown(senatordata, date):
     }
 
 
-index_returns = {}
-
 def get_index():
+    index_returns = {}
+
     spy_start_price = stock_price("SPY", parse_date("Jan 1 2020"))
     spy_data = load_alphavantage_data("SPY")
     start_date = parse_date("Jan 1 2020")
@@ -247,15 +253,23 @@ def get_index():
 
     while start_date <= end_date:
         if start_date in spy_data:
-            index_returns[start_date] = stock_price["SPY", start_date]/spy_start_price
+            index_returns[start_date] = stock_price["SPY", start_date] / spy_start_price
         else:
             for j in range(4):
                 time_delta = timedelta(days=j)
                 date_str = (start_date - time_delta).strftime("%Y-%m-%d")
                 if date_str in spy_data["Time Series (Daily)"]:
-                    index_returns[start_date.isoformat()] = float(spy_data["Time Series (Daily)"][date_str]["5. adjusted close"])/spy_start_price
+                    index_returns[start_date.isoformat()] = (
+                        float(
+                            spy_data["Time Series (Daily)"][date_str][
+                                "5. adjusted close"
+                            ]
+                        )
+                        / spy_start_price
+                    )
         start_date += delta
     return index_returns
+
 
 senator_data = get_preprocessed_data()
 processed_data = {}
@@ -299,17 +313,18 @@ for senator in tqdm(senator_data, "Calculating returns"):
     transactions = []
 
     for transaction in senator["transactions"][:100]:
-        if 'ignored' in transaction:
+        if "ignored" in transaction:
             continue
         else:
-            transactions.append({
-                "ticker": parse_ticker(transaction["ticker"]),
-                "type": transaction["type"],
-                "date": transaction["transaction_date"],
-                "amount": transaction["amount"],
-                "ptr_link": transaction["ptr_link"]
-            })
-    
+            transactions.append(
+                {
+                    "ticker": parse_ticker(transaction["ticker"]),
+                    "type": transaction["type"],
+                    "date": transaction["transaction_date"],
+                    "amount": transaction["amount"],
+                    "ptr_link": transaction["ptr_link"],
+                }
+            )
 
     senator_dict = {
         "name": portfolio["name"],
@@ -320,23 +335,16 @@ for senator in tqdm(senator_data, "Calculating returns"):
         "returns": returns,
         "positions": portfolio["positions"],
         "top_five_stocks": top_five_stocks,
-        "transactions": transactions
-          
+        "transactions": transactions,
     }
-
-
-
-    if senator_dict["estimated_return"] == 0:
-        senators_with_returns -= 1
-        continue
-    else:
-        total_returns += senator_dict["estimated_return"]
 
     total_values += senator_dict["portfolio_value"]
     total_sales += senator_dict["sales"]
     total_purchases += senator_dict["purchases"]
 
-    senator_dict["estimated return"] = "{:,}".format(round(list(returns.values())[-1]), 2)
+    senator_dict["estimated return"] = "{:,}".format(
+        round(list(returns.values())[-1]), 2
+    )
     senator_dict["portfolio_value"] = "{:,}".format(round(portfolio["value"]))
 
     tqdm.write(f"Processed {portfolio['name']}!")
@@ -345,36 +353,50 @@ for senator in tqdm(senator_data, "Calculating returns"):
     senator_names.append(portfolio["name"])
     senators_with_returns = len(senator_names)
 
-average_daily_returns = {}
+    if senator_dict["estimated_return"] == 0:
+        senators_with_returns -= 1
+        continue
+    else:
+        total_returns += senator_dict["estimated_return"]
+
 
 def get_average_returns():
+    average_daily_returns = {}
+
     start_date = parse_date("Jan 1 2020")
     end_date = datetime.now()
     delta = timedelta(days=1)
 
     while start_date <= end_date:
         temporary_average = []
-        for portfolio in processed_data:
-            temporary_average.append(portfolio["returns"][start_date])
-        average_daily_returns[start_date.isoformat()] = sum(temporary_average)/len(temporary_average)
+        for senator in processed_data.values():
+            if senator["returns"][start_date.isoformat()] == 0.0:
+                continue
+            else:
+                temporary_average.append(senator["returns"][start_date.isoformat()])
+        average_daily_returns[start_date.isoformat()] = sum(temporary_average) / len(
+            temporary_average
+        )
         start_date += delta
     return average_daily_returns
 
-overall_positions = []
-overall_top_positions = {}
 
 def get_top_positions():
-    for portfolio in processed_data:
-        for position in portfolio["top_five_positions"]:
-            if position in overall_positions:
-                overall_positions[position] += position["ticker"]
+    overall_positions = {}
+    overall_top_positions = {}
+
+    for senator in processed_data.values():
+        for (ticker, amount) in senator["positions"].items():
+            if ticker in overall_positions:
+                overall_positions[ticker] += amount
             else:
-                 overall_positions[position] += position["ticker"]
+                overall_positions[ticker] = amount
     for (ticker, amount) in overall_positions.items():
         if stock_price(ticker, datetime.now()) is not None:
             overall_top_positions[ticker] = amount * stock_price(ticker, datetime.now())
         else:
             continue
+
     top_five_stocks = {
         stock: value
         for (stock, value) in sorted(
@@ -382,46 +404,64 @@ def get_top_positions():
         )[:5]
     }
 
-    return average_daily_returns
+    for (ticker, amount) in top_five_stocks.items():
+        if amount < 0:
+            top_five_stocks[ticker] = 0
+
+    return top_five_stocks
+
 
 daily_transactions = []
 for transaction in daily_senator_data[:100]:
     if "ticker" not in transaction:
         continue
+    if "--" in transaction:
+        continue
     if "type" not in transaction:
         continue
     if "transaction_date" not in transaction:
-        continue 
+        continue
     if "amount" not in transaction:
         continue
 
-    daily_transactions.append({
-        "ticker": parse_ticker(transaction["ticker"]),
-        "senator": transaction["senator"],
-        "type": transaction["type"],
-        "date": transaction["transaction_date"],
-        "amount": transaction["amount"],
-        "ptr_link": transaction["ptr_link"]
-    })
+    daily_transactions.append(
+        {
+            "ticker": parse_ticker(transaction["ticker"]),
+            "senator": transaction["senator"],
+            "type": transaction["type"],
+            "date": transaction["transaction_date"],
+            "amount": transaction["amount"],
+            "ptr_link": transaction["ptr_link"],
+        }
+    )
+
+for transaction in daily_transactions:
+    if transaction["ticker"] == "--":
+        daily_transactions.remove(transaction)
 
 daily_summary = {
-    "estimated_return": round((total_returns/senators_with_returns), 2),
+    "estimated_return": round(list(get_average_returns().values())[-1], 4),
     "portfolio_value": "{:,}".format(round(total_values)),
     "sales": total_sales,
     "purchases": total_purchases,
     "average_daily_returns": get_average_returns(),
     "positions": get_top_positions(),
     "daily_transactions": daily_transactions,
-    "index_returns": get_index()
+    "index_returns": get_index(),
 }
+
 
 
 processed_data["senator_names"] = senator_names
 processed_data["daily_summary"] = daily_summary
 
+if "Christopher A Coons" in processed_data["senator_names"]:
+    processed_data["senator_names"].remove("Christopher A Coons")
+
+if "Angus S King" in processed_data["senator_names"]:
+    processed_data["senator_names"].remove("Angus S King")
 
 tqdm.write("Writing output...!")
 with open("processed_senators.json", "w") as outfile:
     json.dump(processed_data, outfile, indent=2, sort_keys=True)
 tqdm.write("Done!")
-

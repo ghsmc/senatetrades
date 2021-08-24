@@ -19,7 +19,6 @@
                 class="inset-y-0 w-full py-2 pl-8 pr-2 text-sm text-gray-700 placeholder-gray-600 bg-gray-100 border-0 rounded-md dark:placeholder-gray-500 dark:focus:shadow-outline-gray dark:focus:placeholder-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:placeholder-gray-500 focus:bg-white focus:border-green-300 focus:outline-none focus:shadow-outline-green">
                 <select name="official" id="officials" required>
                     <option disabled id="default-value" selected></option>
-                  
                     {% for senator in data["senator_names"] %}
                     <option>{{senator}}</option>
                     {% endfor %}
@@ -29,6 +28,7 @@
         <script>
             var config = {
                 placeholder: "Search a senator...",
+                maxOptions: 100,
 
                 onChange: (value) => {
                     if (value) {

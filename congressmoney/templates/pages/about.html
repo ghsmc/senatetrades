@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html :class="{ 'theme-dark': dark }" x-data="data()" lang="en">
+{% include "head.html" %}
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<body>
+    <div class="flex h-screen bg-gray-50 dark:bg-gray-900" :class="{ 'overflow-hidden': isSideMenuOpen }">
+        <!-- Desktop sidebar -->
+
+        {% include "navbar.html" %}
+
+        <!-- Mobile sidebar -->
+        <!-- Backdrop -->
+        {% include "mobilenav.html" %}
+
+        <div class="flex flex-col flex-1 w-full">
+            <header class="z-10 py-4 bg-white shadow-md dark:bg-gray-800">
+                <div
+                    class="container flex items-center justify-between h-full px-6 mx-auto text-green-600 dark:text-green-300">
+                    <!-- Mobile hamburger -->
+                    {% include "mobilehamburger.html" %}
+                    <!-- Search input -->
+
+                    {% include "themetoggler.html" %}
+                    <!-- Profile menu -->
+                </div>
+            </header>
+            <main class="h-full overflow-y-auto">
+                <div class="container px-6 mx-auto grid">
+                
+                    <h2 style="font-size: 3rem;" class="mt-6 text-2xl font-semibold text-gray-700 text-left dark:text-gray-200 ml-8">
+                        About
+                    </h2>
+                    <div class="px-4 py-3 mt-2  bg-white rounded-lg shadow-md dark:bg-gray-800">
+                        <p class="text-md text-gray-600 dark:text-gray-400 ml-8">
+                            SenateTrades.org promotes financial transparency among U.S. Senators by displaying portfolio statistics.
+                        </p>
+                    </div>
+                </div>
+        </div>
+
+
+</body>
+
+</html>
