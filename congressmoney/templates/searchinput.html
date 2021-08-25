@@ -28,6 +28,11 @@
         <script>
             var config = {
                 placeholder: "Search a senator...",
+                render: {
+                    no_results: function (data, escape) {
+                        return '<div class="no-results">No results found. This is because <b>we do not track every senator.</b> Some senators choose to keep their assets in blind trusts, a financial arrangement in which the owner does not know how the assets are managed in order to prevent a conflict of interest. Every senator does file an annual, but those are not collected from the EFD site because the information is not always stock related and all the trades reported are typically total blind trusts. </div>';
+                    }
+                },
                 maxOptions: 100,
 
                 onChange: (value) => {

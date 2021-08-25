@@ -36,7 +36,7 @@
                         </h2>
                         <div class="px-4 py-3 mb-8 bg-white rounded-lg shadow-md dark:bg-gray-800">
                             <p class="text-md text-gray-600 dark:text-gray-400 ml-8">
-                                Know what they don't want you to. We're making senators' stock trading accessible to the American public, so you can know: <i>what stocks are your senators buying?</i> 
+                                Know what they don't want you to. We're making senators' stock trading accessible to the American public, so you can know: <i>what stocks are your senators buying?</i>  We currently track {{data["daily_summary"]["senators_tracked"]}} of 100 U.S. senators because some senators choose to put their assets in a blind trust.
                             </p>
                         </div>
                     </div>
@@ -162,10 +162,17 @@
                     <!-- New Table -->
                     {% include "dailysummarytable.html" %}
 
+                    {% include "footer.html" %}
+
                 </div>              
             </main>
         </div>
+        
     </div>
+
+
+
+
 
     <script>
         var estimated_return = document.getElementById("estimated_return").innerHTML

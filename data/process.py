@@ -448,6 +448,7 @@ daily_summary = {
     "positions": get_top_positions(),
     "daily_transactions": daily_transactions,
     "index_returns": get_index(),
+    "senators_tracked": len(senator_names)
 }
 
 

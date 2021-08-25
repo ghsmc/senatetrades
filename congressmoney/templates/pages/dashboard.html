@@ -39,8 +39,8 @@
                     </div>
 
                     {% if data[official]["estimated_return"] == 0 %}
-                   
-                        {% include "noreturnsalert.html" %}
+
+                    {% include "noreturnsalert.html" %}
 
                     {% endif %}
 
@@ -161,6 +161,8 @@
                     <!-- New Table -->
                     {% include "table.html" %}
 
+                    {% include "footer.html" %}
+
                 </div>
             </main>
         </div>
@@ -170,21 +172,21 @@
     <script>
         var estimated_return = document.getElementById("estimated_return").innerHTML
 
-        if(estimated_return == 0){
+        if (estimated_return == 0) {
             estimated_return = 0
         }
 
-        if(estimated_return < 1  && estimated_return != 0) {
+        if (estimated_return < 1 && estimated_return != 0) {
             estimated_return = estimated_return - 1;
-            estimated_return = estimated_return*100;
+            estimated_return = estimated_return * 100;
         }
 
-        if(estimated_return > 1){
+        if (estimated_return > 1) {
             estimated_return = estimated_return - 1;
-            estimated_return = estimated_return*100;
+            estimated_return = estimated_return * 100;
         }
 
-        if(estimated_return == 1){
+        if (estimated_return == 1) {
             estimated_return = 0;
         }
 

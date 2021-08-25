@@ -19,8 +19,14 @@
             <div class="flex items-center text-sm">
               <!-- Avatar with inset shadow -->
               <div class="relative hidden w-8 h-8 mr-3 rounded-full md:block">
+                {% if (transaction["ticker"] == "AA") or (transaction["ticker"] =="SNAP") or (transaction["ticker"] =="AAPL") or (transaction["ticker"] =="BABA") or (transaction["ticker"] =="BA") %}
+                  <img class="object-cover w-full h-full rounded-full"
+                  src="static/assets/logos/{{transaction["ticker"]}}.jpg" alt="" loading="lazy" />
+                {% else %}
                 <img class="object-cover w-full h-full rounded-full"
                   src="https://eodhistoricaldata.com/img/logos/US/{{transaction["ticker"]}}.png" alt="" loading="lazy" />
+                {% endif %}
+                
                 <div class="absolute inset-0 rounded-full shadow-inner" aria-hidden="true"></div>
               </div>
               <div>

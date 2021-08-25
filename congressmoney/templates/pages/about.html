@@ -29,16 +29,52 @@
             </header>
             <main class="h-full overflow-y-auto">
                 <div class="container px-6 mx-auto grid">
-                
-                    <h2 style="font-size: 3rem;" class="mt-6 text-2xl font-semibold text-gray-700 text-left dark:text-gray-200 ml-8">
+
+                    <h2 style="font-size: 2.6rem;"
+                        class="mt-6 font-bold text-gray-700 text-left dark:text-gray-200 ml-8">
                         About
                     </h2>
-                    <div class="px-4 py-3 mt-2  bg-white rounded-lg shadow-md dark:bg-gray-800">
-                        <p class="text-md text-gray-600 dark:text-gray-400 ml-8">
-                            SenateTrades.org promotes financial transparency among U.S. Senators by displaying portfolio statistics.
+                    <div class="py-2">
+                        <p class="text-md text-gray-600 dark:text-gray-400 ml-8 dark:text-gray-200">
+                        <b>SenateTrades is dedicated to holding public officers financially accountable. Our website
+                                promotes financial transparency by processing their stock market transactions compiling
+                                their portfolios in a accessible and digestible format for the American public.</b>
+
+                        SenateTrades was formed in the wake of the 2020 insider trading scandal, in which a number
+                            of senators were accused of using information from private, COVID-19 briefings to inform
+                            their stock trades. Many senators believe it is corrupt for public officers to invest in the
+                            very companies they regulate, as opposed to having their assets managed in a blind trust.
+                            Such a financial arrangement does not allow the owner to see how their portfolios are
+                            managed in order to prevent a conflict of interest.
                         </p>
                     </div>
+
+                    <h2 style="font-size: 2rem;"
+                        class="mt-6 font-semibold text-gray-700 text-left dark:text-gray-200 ml-8">
+                        The data
+                    </h2>
+                    <div class="py-2">
+                        <p class="text-md text-gray-600 dark:text-gray-400 ml-8">
+                            This website relies on data from SenateStockWatcher, a political organization which is
+                            dedicated to compiling senator data from the online filing depository (where senators are
+                            legally required to disclose their trades of greater than $1000). SenateTrades also relies
+                            on historical stock market data from AlphaVantage, a leading provider of stock APIs.
+                        </p>
+                    </div>
+
+                <h2 style="font-size: 2rem;"
+                    class="mt-6 font-semibold text-gray-700 text-left dark:text-gray-200 ml-8">
+                    The design
+                </h2>
+                <div class="py-2">
+                    <p class="text-md text-gray-600 dark:text-gray-400 ml-8">
+                        This website was built with Flask, HTML5, and Javascript. It is adapted from the Windmill UI Template, designed with TailwindCSS. SenateTrades also collects minimal user analytics using shynet, a privacy-conscious, user-friendly, web-analytics tool. This site is operated primarily by George McCain.
+                    </p>
                 </div>
+
+                {% include "footer.html" %}
+                </div>
+
         </div>
 
 
