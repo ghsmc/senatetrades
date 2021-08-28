@@ -59,7 +59,7 @@
                                     Estimated Return, to date
                                 </p>
                                 <p id="estimated_return" class="text-lg font-semibold text-gray-700 dark:text-gray-200">
-                                    {% with estimated_return = data[official]["estimated_return"] %}
+                                    {% with estimated_return = data[official]["percentage_return"] %}
                                     {{estimated_return}}
                                     {% endwith %}
                                 </p>
@@ -131,14 +131,14 @@
 
 
 
-                    <div class="grid gap-6 mb-8 md:grid-cols-2">
+                    <!-- <div class="grid gap-6 mb-8 md:grid-cols-2"> -->
                         <!-- Doughnut/Pie chart -->
-                        <div class="min-w-0 p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                        <!-- <div class="min-w-0 p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
                             <h4 class="mb-4 font-semibold text-gray-800 dark:text-gray-300">
                                 Portfolio Breakdown
                             </h4>
                             <canvas id="pie"></canvas>
-                        </div>
+                        </div> -->
                         <!-- Lines chart -->
                         <div class="min-w-0 p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
                             <h4 class="mb-4 font-semibold text-gray-800 dark:text-gray-300">
@@ -157,7 +157,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    <!-- </div> -->
                     <!-- New Table -->
                     {% include "table.html" %}
 
@@ -170,28 +170,15 @@
 
 
     <script>
+
+        var baseline = senate_data[official]["returns"]["2020-01-01T00:00:00"];
         var estimated_return = document.getElementById("estimated_return").innerHTML
+        if (baseline != 0){
+            document.getElementById("estimated_return").innerHTML = estimated_return / baseline;
+        } 
 
-        if (estimated_return == 0) {
-            estimated_return = 0
-        }
-
-        if (estimated_return < 1 && estimated_return != 0) {
-            estimated_return = estimated_return - 1;
-            estimated_return = estimated_return * 100;
-        }
-
-        if (estimated_return > 1) {
-            estimated_return = estimated_return - 1;
-            estimated_return = estimated_return * 100;
-        }
-
-        if (estimated_return == 1) {
-            estimated_return = 0;
-        }
-
-        document.getElementById("estimated_return").innerHTML = estimated_return
         document.getElementById("estimated_return").innerHTML = (Math.round(estimated_return * 100) / 100) + "%"
+
 
     </script>
 

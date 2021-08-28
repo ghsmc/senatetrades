@@ -36,7 +36,7 @@
                         </h2>
                         <div class="px-4 py-3 mb-8 bg-white rounded-lg shadow-md dark:bg-gray-800">
                             <p class="text-md text-gray-600 dark:text-gray-400 ml-8">
-                                Know what they don't want you to. We're making senators' stock trading accessible to the American public, so you can know: <i>what stocks are your senators buying?</i>  We currently track {{data["daily_summary"]["senators_tracked"]}} of 100 U.S. senators because some senators choose to put their assets in a blind trust.
+                                Know what they don't want you to. We're making senators' stock trading accessible to the American public, so you can know: <i>what stocks are your senators buying?</i>  We currently track {{data["daily_summary"]["senators_tracked"]}} of 100 U.S. senators because some senators choose to keep their assets in a blind trust.
                             </p>
                         </div>
                     </div>
@@ -79,9 +79,9 @@
                                 <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">
                                     Combined Portfolio Value
                                 </p>
-                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200">
+                                <p id="combined_portfolio_value" class="text-lg font-semibold text-gray-700 dark:text-gray-200">
                                     {% with portfolio_value = data["daily_summary"]["portfolio_value"] %}
-                                    {{portfolio_value}}
+                                    ${{portfolio_value}}
                                     {% endwith %}  
                                 </p>
                             </div>
@@ -130,18 +130,11 @@
                         </div>
                     </div>
 
-
-
-                    <div class="grid gap-6 mb-8 md:grid-cols-2">
+          
                         <!-- Doughnut/Pie chart -->
-                        <div class="min-w-0 p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
-                            <h4 class="mb-4 font-semibold text-gray-800 dark:text-gray-300">
-                                Portfolio Breakdown
-                            </h4>
-                            <canvas id="pie-overall"></canvas>
-                        </div>
+                    
                         <!-- Lines chart -->
-                        <div class="min-w-0 p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                        <div class="min-w-0 p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800 mb-8">
                             <h4 class="mb-4 font-semibold text-gray-800 dark:text-gray-300">
                                 Estimated Return
                             </h4>
@@ -158,7 +151,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
                     <!-- New Table -->
                     {% include "dailysummarytable.html" %}
 
@@ -175,28 +167,35 @@
 
 
     <script>
+ 
+        var baseline = senate_data["daily_summary"]["average_daily_returns"]["2020-01-01T00:00:00"];
+        var estimated_return = document.getElementById("estimated_return").innerHTML
+        if(baseline != 0){
+            document.getElementById("estimated_return").innerHTML = estimated_return / baseline;
+        }
+       
+
         var estimated_return = document.getElementById("estimated_return").innerHTML
 
-        if(estimated_return == 0){
+        if (estimated_return == 0) {
             estimated_return = 0
         }
 
-        if(estimated_return < 1 && estimated_return != 0) {
+        if (estimated_return < 1 && estimated_return != 0) {
             estimated_return = estimated_return - 1;
-            estimated_return = estimated_return*100;
+            estimated_return = estimated_return * 100;
         }
 
-        if(estimated_return > 1){
+        if (estimated_return > 1) {
             estimated_return = estimated_return - 1;
-            estimated_return = estimated_return*100;
+            estimated_return = estimated_return * 100;
         }
 
-        if(estimated_return == 1){
+        if (estimated_return == 1) {
             estimated_return = 0;
         }
 
-        document.getElementById("estimated_return").innerHTML = estimated_return
-        document.getElementById("estimated_return").innerHTML = (Math.round(estimated_return * 1000) / 1000) + "%"
+        document.getElementById("estimated_return").innerHTML = (Math.round(estimated_return * 100) / 100) + "%"
 
     </script>
 

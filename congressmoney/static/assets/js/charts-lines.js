@@ -8,10 +8,17 @@ yaxis = []
 spy_xaxis = []
 spy_yaxis = []
 
+var baseline = senate_data[official]["returns"]["2020-01-01T00:00:00"];
+
 for (let [key, value] of Object.entries(senate_data[official]["returns"])) {
     key = key.substr(0, 10)
     xaxis.push(key);
-    yaxis.push(value);
+    if (baseline != 0){
+      yaxis.push(value / baseline);
+    } else {
+      yaxis.push(value)
+    }
+ 
 }
 
 for (let [key, value] of Object.entries(senate_data["daily_summary"]["index_returns"])) {

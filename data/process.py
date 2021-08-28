@@ -325,10 +325,24 @@ for senator in tqdm(senator_data, "Calculating returns"):
                     "ptr_link": transaction["ptr_link"],
                 }
             )
+    
+    percentage_return = list(returns.values())[-1]
+
+    if percentage_return == 0: 
+        percentage_return = 0
+
+    if percentage_return < 1  and percentage_return != 0:
+        percentage_return = percentage_return - 1
+        percentage_return = percentage_return * 100
+    
+    if percentage_return > 1:
+        percentage_return = percentage_return - 1
+        percentage_return = percentage_return * 100
 
     senator_dict = {
         "name": portfolio["name"],
         "estimated_return": list(returns.values())[-1],
+        "percentage_return": round(percentage_return, 2),
         "portfolio_value": portfolio["value"],
         "sales": portfolio["sales"],
         "purchases": portfolio["purchases"],
@@ -450,8 +464,6 @@ daily_summary = {
     "index_returns": get_index(),
     "senators_tracked": len(senator_names)
 }
-
-
 
 processed_data["senator_names"] = senator_names
 processed_data["daily_summary"] = daily_summary

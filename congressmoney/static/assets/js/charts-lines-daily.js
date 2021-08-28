@@ -8,16 +8,18 @@ yaxis = []
 spy_xaxis = []
 spy_yaxis = []
 
-for (let [key, value] of Object.entries(senate_data["daily_summary"]["average_daily_returns"])) {
-  key = key.substr(0, 10)
-  xaxis.push(key);
-  yaxis.push(value);
-}
-
 for (let [key, value] of Object.entries(senate_data["daily_summary"]["index_returns"])) {
   key = key.substr(0, 10)
   spy_xaxis.push(key);
   spy_yaxis.push(value);
+}
+
+var baseline = senate_data["daily_summary"]["average_daily_returns"]["2020-01-01T00:00:00"];
+
+for (let [key, value] of Object.entries(senate_data["daily_summary"]["average_daily_returns"])) {
+  key = key.substr(0, 10)
+  xaxis.push(key);
+  yaxis.push(value / baseline);
 }
 
 const lineConfig2 = {
