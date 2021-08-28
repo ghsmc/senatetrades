@@ -471,6 +471,15 @@ processed_data["daily_summary"] = daily_summary
 if "Christopher A Coons" in processed_data["senator_names"]:
     processed_data["senator_names"].remove("Christopher A Coons")
 
+if "Ronald L Wyden" in processed_data["senator_names"]:
+    processed_data["senator_names"].remove("Ronald L Wyden")
+
+if "Ladda Tammy Duckworth" in processed_data["senator_names"]:
+    processed_data["senator_names"].remove("Ladda Tammy Duckworth")
+
+if "Ron Wydenn" in processed_data["senator_names"]:
+    processed_data["senator_names"].remove("Ron Wyden")
+
 if "Angus S King" in processed_data["senator_names"]:
     processed_data["senator_names"].remove("Angus S King")
 
