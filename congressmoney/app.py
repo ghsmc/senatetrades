@@ -11,7 +11,7 @@ app = Flask(__name__, static_url_path="/static")
 
 with open("processed_senators.json", "r") as infile:
     data = json.load(infile)
-
+    
 
 @app.route("/")
 def home():
@@ -23,13 +23,9 @@ def dashboard():
     official = request.args.get("official")
     return render_template("pages/dashboard.html", official=official, data=data)
 
-@app.route("/research")
-def research():
-    return render_template("pages/research.html")
-
 @app.route("/about")
 def about():
     return render_template("pages/about.html")
 
-
-app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True)
