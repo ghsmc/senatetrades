@@ -196,7 +196,8 @@ def portfolio_breakdown(senatordata, date):
         elif transaction["type"] == "Sale (Partial)":
             if ticker in positions:
                 sales += 1
-                positions[ticker] -= transaction["shares"]
+                if positions[ticker] > 0:
+                    positions[ticker] -= transaction["shares"]
                 cash += estimate_transaction_amount(transaction["amount"])
             else:
                 # Unaccounted for sale!
@@ -234,7 +235,7 @@ def portfolio_breakdown(senatordata, date):
         "positions": positions,
         "unaccounted": unaccounted,
         "total": total,
-        "value": value + cash,
+        "value": value, #ADDED "value + cash"
         "purchases": purchases,
         "sales": sales,
         "cash": cash,
@@ -376,7 +377,7 @@ for senator in tqdm(senator_data, "Calculating returns"):
 
 def get_average_returns():
     average_daily_returns = {}
-
+    
     start_date = parse_date("Jan 1 2020")
     end_date = datetime.now()
     delta = timedelta(days=1)
@@ -385,6 +386,10 @@ def get_average_returns():
         temporary_average = []
         for senator in processed_data.values():
             if senator["returns"][start_date.isoformat()] == 0.0:
+                continue
+            if senator["purchases"] + senator["sales"] < 10:
+                continue
+            if senator["name"] == "Susan M Collins" or senator["name"] == "Kelly Loeffler":
                 continue
             else:
                 temporary_average.append(senator["returns"][start_date.isoformat()])
@@ -406,7 +411,7 @@ def get_top_positions():
             else:
                 overall_positions[ticker] = amount
     for (ticker, amount) in overall_positions.items():
-        if stock_price(ticker, datetime.now()) is not None:
+        if stock_price(ticker, datetime.now()) is not None: 
             overall_top_positions[ticker] = amount * stock_price(ticker, datetime.now())
         else:
             continue

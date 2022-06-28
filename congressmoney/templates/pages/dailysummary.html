@@ -168,11 +168,11 @@
 
     <script>
  
-        var baseline = senate_data["daily_summary"]["average_daily_returns"]["2020-01-01T00:00:00"];
-        var estimated_return = document.getElementById("estimated_return").innerHTML
-        if(baseline != 0){
-            document.getElementById("estimated_return").innerHTML = estimated_return / baseline;
-        }
+        // var baseline = senate_data["daily_summary"]["average_daily_returns"]["2020-01-01T00:00:00"];
+        // var estimated_return = document.getElementById("estimated_return").innerHTML
+        // if(baseline != 0){
+        //     document.getElementById("estimated_return").innerHTML = estimated_return / baseline;
+        // }
        
 
         var estimated_return = document.getElementById("estimated_return").innerHTML
@@ -195,7 +195,7 @@
             estimated_return = 0;
         }
 
-        document.getElementById("estimated_return").innerHTML = (Math.round(estimated_return * 100) / 100) + "%"
+        document.getElementById("estimated_return").innerHTML = Math.round(estimated_return * 100)/100  + "%"
 
     </script>
 
