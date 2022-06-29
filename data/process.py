@@ -235,7 +235,7 @@ def portfolio_breakdown(senatordata, date):
         "positions": positions,
         "unaccounted": unaccounted,
         "total": total,
-        "value": value, #ADDED "value + cash"
+        "value": value, #ADDED "value + cash", but correct change
         "purchases": purchases,
         "sales": sales,
         "cash": cash,
