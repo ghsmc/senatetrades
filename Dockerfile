@@ -11,6 +11,7 @@ RUN poetry config virtualenvs.create false \
 
 COPY congressmoney/ congressmoney/
 
-COPY processed_senators.json /app/processed_senators.json
+# COPY processed_senators.json /app/processed_senators.json
+COPY processed_senators.json /congressmoney/processed_senators.json
 
 CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 congressmoney.app:app
